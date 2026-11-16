@@ -1,0 +1,183 @@
+{
+  "routes": {
+    "dashboard": {
+      "desktop": {
+        "screenshot": "docs/screenshots/dashboard_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/dashboard_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/dashboard_mobile.png",
+        "overflow": false
+      }
+    },
+    "studio": {
+      "desktop": {
+        "screenshot": "docs/screenshots/studio_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/studio_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/studio_mobile.png",
+        "overflow": false
+      }
+    },
+    "workflows": {
+      "desktop": {
+        "screenshot": "docs/screenshots/workflows_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/workflows_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/workflows_mobile.png",
+        "overflow": false
+      }
+    },
+    "generator": {
+      "desktop": {
+        "screenshot": "docs/screenshots/generator_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/generator_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/generator_mobile.png",
+        "overflow": false
+      }
+    },
+    "executions": {
+      "desktop": {
+        "screenshot": "docs/screenshots/executions_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/executions_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/executions_mobile.png",
+        "overflow": false
+      }
+    },
+    "integrations": {
+      "desktop": {
+        "screenshot": "docs/screenshots/integrations_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/integrations_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/integrations_mobile.png",
+        "overflow": false
+      }
+    },
+    "knowledge": {
+      "desktop": {
+        "screenshot": "docs/screenshots/knowledge_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/knowledge_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/knowledge_mobile.png",
+        "overflow": false
+      }
+    },
+    "approvals": {
+      "desktop": {
+        "screenshot": "docs/screenshots/approvals_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/approvals_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/approvals_mobile.png",
+        "overflow": false
+      }
+    },
+    "onboarding": {
+      "desktop": {
+        "screenshot": "docs/screenshots/onboarding_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/onboarding_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/onboarding_mobile.png",
+        "overflow": false
+      }
+    },
+    "settings": {
+      "desktop": {
+        "screenshot": "docs/screenshots/settings_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/settings_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/settings_mobile.png",
+        "overflow": false
+      }
+    },
+    "analytics": {
+      "desktop": {
+        "screenshot": "docs/screenshots/analytics_desktop.png",
+        "overflow": false
+      },
+      "tablet": {
+        "screenshot": "docs/screenshots/analytics_tablet.png",
+        "overflow": false
+      },
+      "mobile": {
+        "screenshot": "docs/screenshots/analytics_mobile.png",
+        "overflow": false
+      }
+    }
+  },
+  "console_errors": [],
+  "overflow_issues": [],
+  "interactive_tests": [
+    {
+      "name": "Approvals Center Inspection",
+      "passed": true,
+      "details": {
+        "buttons": [
+          "Sign in",
+          "Create account",
+          "Sign in"
+        ],
+        "hasPendingCards": false
+      }
+    }
+  ],
+  "style_inspection": {
+    "bodyBg": "rgb(8, 15, 32)",
+    "bodyColor": "rgb(241, 246, 255)",
+    "cardBackdropFilter": null,
+    "cardBg": null,
+    "cardBorder": null,
+    "sidebarBg": null,
+    "sidebarBorder": null
+  }
+}

@@ -1,0 +1,132 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: flowpilot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flowpilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}
+      POSTGRES_DB: flowpilot_db
+    ports:
+      # Bound to localhost interface only to prevent public exposure
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowpilot -d flowpilot_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: flowpilot-redis
+    restart: unless-stopped
+    ports:
+      # Bound to localhost interface only to prevent public exposure
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flowpilot-backend
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DATABASE_URL: postgresql+asyncpg://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      SYNC_DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev_insecure_jwt_secret_key_minimum_32_characters}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:-dGhpc19pc19hXzMyX2J5dGVfc2VjcmV0X2tleV9mb3JfZGV2IQ==}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8000/api/v1/integrations/gmail/callback}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flowpilot-celery-worker
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info"]
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DATABASE_URL: postgresql+asyncpg://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      SYNC_DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev_insecure_jwt_secret_key_minimum_32_characters}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:-dGhpc19pc19hXzMyX2J5dGVfc2VjcmV0X2tleV9mb3JfZGV2IQ==}
+
+  celery_scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flowpilot-celery-scheduler
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel=info"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      SYNC_DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD:-6c46c5dbc0c640ca8556739598c5e6514bcadedd37614b16a59e41639e7c0bed}@postgres:5432/flowpilot_db
+      REDIS_URL: redis://redis:6379/0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: flowpilot-frontend
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,20 @@
+{
+  "debug_endpoints": [],
+  "insecure_cors": [],
+  "hardcoded_secrets": [],
+  "frontend_secret_leaks": [],
+  "docker_checks": [
+    {
+      "container": "backend",
+      "has_non_root_user": true,
+      "has_healthcheck": true,
+      "has_stopsignal": true
+    },
+    {
+      "container": "frontend",
+      "has_non_root_user": true,
+      "has_healthcheck": true,
+      "has_stopsignal": true
+    }
+  ]
+}
