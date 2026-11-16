@@ -21,15 +21,36 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def _normalize_url(url: str) -> str:
+    if url.startswith("sqlite+aiosqlite://"):
+        return url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+    if url.startswith("postgresql+asyncpg://"):
+        return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+    return url
+
+
 def get_sync_url() -> str:
     from sqlalchemy import create_engine
-    # Test primary postgres connection
-    try:
-        test_engine = create_engine(settings.sync_database_uri, pool_pre_ping=True, connect_args={"connect_timeout": 3})
-        with test_engine.connect():
-            return settings.sync_database_uri
-    except Exception:
-        return f"sqlite:///{_sqlite_path}"
+    # 1. Respect explicit alembic config sqlalchemy.url if provided
+    ini_url = config.get_main_option("sqlalchemy.url")
+    if ini_url and not ini_url.startswith("driver://") and ini_url.strip():
+        return _normalize_url(ini_url)
+
+    # 2. Check environment / settings
+    sync_uri = _normalize_url(settings.sync_database_uri)
+    if sync_uri.startswith("sqlite"):
+        return sync_uri
+
+    # 3. If PostgreSQL, verify reachable or fall back to resilient SQLite
+    if sync_uri.startswith("postgresql"):
+        try:
+            test_engine = create_engine(sync_uri, pool_pre_ping=True, connect_args={"connect_timeout": 3})
+            with test_engine.connect():
+                return sync_uri
+        except Exception:
+            return f"sqlite:///{_sqlite_path}"
+
+    return sync_uri
 
 
 def run_migrations_offline() -> None:

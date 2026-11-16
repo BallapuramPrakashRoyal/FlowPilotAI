@@ -281,3 +281,22 @@ Executed [scripts/verify_isolated_recovery.py](file:///C:/Users/PRAKASH%20ROYAL/
 ### 10.3 Final Production Release Decision
 **🟢 GO FOR PRODUCTION RELEASE (v1.0.0-rc1)**  
 Supported by [docs/RC1_RELEASE_REPORT.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/RC1_RELEASE_REPORT.md), [docs/PRODUCTION_ENVIRONMENT_CHECKLIST.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/PRODUCTION_ENVIRONMENT_CHECKLIST.md), and [docs/DEPLOYMENT_RUNBOOK.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/DEPLOYMENT_RUNBOOK.md).
+
+---
+
+## 11. Critical CI Repair: Alembic Migration & SQLite Test Database
+
+### 11.1 Problem A — Alembic Migration Failure Resolution
+- **Issue**: `sqlite3.OperationalError: no such table: agent_runs` occurred on empty database runs because `f675da0e0729` was an `ALTER TABLE` migration with `revises: None`.
+- **Fix**: Created baseline migration `1a2b3c4d5e6f_initial_schema.py` containing complete DDL for all 20 base application tables. Linked `f675da0e0729` to `1a2b3c4d5e6f`. Hardened `env.py` URL parsing.
+- **Verification**: Complete upgrade ➔ downgrade ➔ re-upgrade cycle verified on isolated database (`scripts/test_migration_lifecycle.py`) and PostgreSQL dialect offline DDL generation.
+
+### 11.2 Problem B — SQLite Test Database Initialization Resolution
+- **Issue**: In `test_api_endpoints.py`, 3 tests failed with `no such table: users` because `httpx.ASGITransport` does not invoke FastAPI lifespan startup (`init_db()`), leaving SQLite uninitialized.
+- **Fix**: Added `backend/tests/conftest.py` with session-level schema creation (`Base.metadata.create_all`) and function-level `get_db` FastAPI dependency override.
+- **Verification**: 
+  - `test_auth_registration_and_login`: **PASSED** (1.49s)
+  - `test_ai_workflow_planner`: **PASSED** (3.36s)
+  - `test_workflow_execution_dispatch`: **PASSED** (1.94s)
+  - Full backend test suite: **30/30 PASSED** (100%)
+  - Full documentation at [docs/CI_DATABASE_REPAIR_REPORT.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/CI_DATABASE_REPAIR_REPORT.md).

@@ -248,3 +248,19 @@
   - Published [docs/DEPLOYMENT_RUNBOOK.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/DEPLOYMENT_RUNBOOK.md) with Linux hardening, Caddy TLS 1.3 configuration, and rollback procedures.
 - [x] **Final Production Release Decision**:
   - **🟢 GO FOR PRODUCTION RELEASE (v1.0.0-rc1)**.
+
+---
+
+### Critical CI Repair: Alembic Migrations & SQLite Test Isolation — [COMPLETED]
+- [x] **Problem A — Alembic Migration Chain Repair**:
+  - Root Cause: Missing baseline migration; `f675da0e0729` attempted `batch_alter_table` on non-existent `agent_runs` table on fresh DBs.
+  - Implemented `1a2b3c4d5e6f_initial_schema.py` creating all 20 base application tables in proper topological dependency order.
+  - Re-chained `f675da0e0729` with `down_revision = '1a2b3c4d5e6f'`.
+  - Hardened `backend/alembic/env.py` against SQLite driver keyword crashes and respected explicit URLs.
+  - Verified full upgrade ➔ downgrade ➔ re-upgrade cycle on isolated database.
+- [x] **Problem B — SQLite API Test Isolation Repair**:
+  - Root Cause: `httpx.ASGITransport` bypassed FastAPI lifespan `init_db()`, causing `no such table: users` on clean test runs.
+  - Implemented `backend/tests/conftest.py` with session-level schema creation (`Base.metadata.create_all`) and function-level `get_db` FastAPI dependency overrides.
+  - Retested `test_auth_registration_and_login`, `test_ai_workflow_planner`, `test_workflow_execution_dispatch` individually (all PASS).
+  - Full backend test suite passing: **30/30 (100%)**.
+  - Documented in [docs/CI_DATABASE_REPAIR_REPORT.md](file:///C:/Users/PRAKASH%20ROYAL/FlowPilotAI/docs/CI_DATABASE_REPAIR_REPORT.md).
